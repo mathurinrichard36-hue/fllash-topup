@@ -1,46 +1,35 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-app.use(bodyParser.json());
-app.use(express.static('public'));
+// Middleware pour lire les données JSON envoyées par le site
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-let usersDatabase = {
-    "user_ishley": { coins: 500, name: "Ishley" }
-};
+// Servir les fichiers statiques du dossier "public"
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/api/balance/:userId', (req, res) => {
-    let userId = req.params.userId;
-    if (!usersDatabase[userId]) {
-        usersDatabase[userId] = { coins: 500, name: "Joueur" };
-    }
-    res.json({ success: true, coins: usersDatabase[userId].coins });
-});
-
+// Route pour traiter la recharge lorsqu'un utilisateur clique sur Valider
 app.post('/api/topup', (req, res) => {
-    let { userId, game, packName, coinCost, playerId, paymentMethod } = req.body;
+    const { playerId, diamonds } = req.body;
 
-    if (!usersDatabase[userId]) {
-        usersDatabase[userId] = { coins: 500, name: "Joueur" };
+    if (!playerId) {
+        return res.status(400).json({ success: false, message: "ID de joueur manquant !" });
     }
 
-    let user = usersDatabase[userId];
+    // Simulation de la validation avec les serveurs de Free Fire
+    console.log(`Traitement de la recharge pour l'ID: ${playerId} - Quantité: ${diamonds} diamants`);
 
-    if (paymentMethod === 'Coins') {
-        if (user.coins < coinCost) {
-            return res.json({ success: false, message: "Solde de coins insuffisant ! Veuillez recharger." });
-        }
-        user.coins -= coinCost;
-    }
-
+    // On renvoie une réponse positive avec un message de succès
     res.json({
         success: true,
-        message: `Commande validée ! ${packName} envoyé automatiquement pour l'ID ${playerId}.`,
-        remainingCoins: user.coins
+        message: `Recharge de ${diamonds} diamants réussie pour l'ID ${playerId} !`,
+        remainingCoins: 7212 // Vous pouvez ajuster ou lier à une base de données
     });
 });
 
 app.listen(PORT, () => {
-    console.log(`Serveur GameTopUp démarré sur le port ${PORT}`);
+    console.log(`FlashTopUp démarré sur le port ${PORT}`);
 });
+
